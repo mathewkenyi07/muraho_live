@@ -6,22 +6,14 @@ import {
   CulturalAlert,
   MoMoPaymentData,
   TranscriptMessage,
-  FailSafeScenario,
 } from '@/lib/types';
 import { VisualizerOrb } from '@/components/VisualizerOrb';
 import { CulturalHUD } from '@/components/CulturalHUD';
 import { MoMoModal } from '@/components/MoMoModal';
-import { FailSafeDrawer, DEMO_SCENARIOS } from '@/components/FailSafeDrawer';
 import { AudioController } from '@/components/AudioController';
 import {
-  Sparkles,
-  Wifi,
   Smartphone,
-  Info,
   RotateCcw,
-  Volume2,
-  Globe,
-  Radio,
 } from 'lucide-react';
 
 export default function MurahoVoiceApp() {
@@ -29,10 +21,8 @@ export default function MurahoVoiceApp() {
   const [voiceState, setVoiceState] = useState<VoiceState>('idle');
   const [audioLevel, setAudioLevel] = useState<number>(0.04);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
 
-  // Modals & Drawers
-  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  // Modals & States
   const [momoModalData, setMomoModalData] = useState<MoMoPaymentData | null>(null);
   const [isMoMoOpen, setIsMoMoOpen] = useState<boolean>(false);
 
@@ -97,59 +87,6 @@ export default function MurahoVoiceApp() {
   };
 
   // Trigger scenario (from Fail-Safe Drawer)
-  const handleSelectScenario = (scenario: FailSafeScenario) => {
-    setActiveScenarioId(scenario.id);
-    setIsDrawerOpen(false);
-
-    // 1. User query transcript
-    const userMsg: TranscriptMessage = {
-      id: `usr-${Date.now()}`,
-      sender: 'user',
-      text: scenario.userPrompt,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setTranscripts((prev) => [...prev, userMsg]);
-    setLiveSubtitle(scenario.userPrompt);
-    setVoiceState('thinking');
-
-    // 2. Simulated response after thinking pause
-    setTimeout(() => {
-      const resp = scenario.simulatedResponse;
-      const assistantMsg: TranscriptMessage = {
-        id: `ast-${Date.now()}`,
-        sender: 'assistant',
-        text: resp.text,
-        kinyarwandaSnippet: resp.kinyarwanda,
-        translationSnippet: resp.translation,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-
-      setTranscripts((prev) => [...prev, assistantMsg]);
-      setLiveSubtitle(resp.kinyarwanda || resp.text);
-
-      // Add cultural HUD alert if present
-      if (resp.culturalAlert) {
-        setAlerts((prev) => [
-          resp.culturalAlert!,
-          ...prev.filter((a) => a.id !== resp.culturalAlert!.id),
-        ]);
-      }
-
-      // If MoMo payment data exists, show MoMo Pay button/modal
-      if (resp.momoData) {
-        setMomoModalData(resp.momoData);
-        // Optionally auto-open modal after speech
-        setTimeout(() => {
-          setIsMoMoOpen(true);
-        }, 1800);
-      }
-
-      // Voice output
-      speakText(resp.audioText);
-    }, 1200);
-  };
-
   // Dismiss cultural alert
   const handleDismissAlert = (id: string) => {
     setAlerts((prev) => prev.filter((a) => a.id !== id));
@@ -161,7 +98,6 @@ export default function MurahoVoiceApp() {
       window.speechSynthesis.cancel();
     }
     setVoiceState('idle');
-    setActiveScenarioId(null);
     setAlerts([]);
     setTranscripts([]);
     setLiveSubtitle('');
@@ -375,14 +311,6 @@ export default function MurahoVoiceApp() {
         paymentData={momoModalData}
         isOpen={isMoMoOpen}
         onClose={() => setIsMoMoOpen(false)}
-      />
-
-      {/* Accessible FailSafe Scenarios Drawer */}
-      <FailSafeDrawer
-        isOpen={isDrawerOpen}
-        onToggle={() => setIsDrawerOpen(!isDrawerOpen)}
-        onSelectScenario={handleSelectScenario}
-        activeScenarioId={activeScenarioId}
       />
     </main>
   );

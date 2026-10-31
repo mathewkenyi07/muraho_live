@@ -178,8 +178,20 @@ export const AudioController: React.FC<AudioControllerProps> = ({
     onAudioLevelChange(0.04);
   };
 
-  // Speech Recognition ref for live microphone speech-to-text
+  // Speech Recognition & Silence Detection (VAD) for automatic reply
   const recognitionRef = useRef<any>(null);
+  const speechBufferRef = useRef<string>('');
+  const speechSilenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Trigger dispatch when user stops speaking
+  const dispatchCapturedSpeech = () => {
+    const text = speechBufferRef.current.trim();
+    if (text && onUserSpeechDetected) {
+      speechBufferRef.current = '';
+      onVoiceStateChange('thinking');
+      onUserSpeechDetected(text);
+    }
+  };
 
   // Initialize Speech Recognition
   const initSpeechRecognition = () => {
@@ -197,23 +209,49 @@ export const AudioController: React.FC<AudioControllerProps> = ({
       recognition.lang = 'en-US';
 
       recognition.onresult = (event: any) => {
-        let finalTranscript = '';
+        let interimTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += transcript;
+            speechBufferRef.current += ' ' + transcript;
+          } else {
+            interimTranscript += transcript;
           }
         }
 
-        const trimmed = finalTranscript.trim();
-        if (trimmed && onUserSpeechDetected) {
-          onVoiceStateChange('thinking');
-          onUserSpeechDetected(trimmed);
+        // Active speech detected
+        onVoiceStateChange('listening');
+
+        // Reset silence timer on every new speech chunk
+        if (speechSilenceTimeoutRef.current) {
+          clearTimeout(speechSilenceTimeoutRef.current);
         }
+
+        // When user pauses for 1.2s, automatically trigger reply!
+        speechSilenceTimeoutRef.current = setTimeout(() => {
+          if (interimTranscript && !speechBufferRef.current.includes(interimTranscript)) {
+            speechBufferRef.current += ' ' + interimTranscript;
+          }
+          dispatchCapturedSpeech();
+        }, 1200);
       };
 
       recognition.onerror = (e: any) => {
         console.warn('Speech recognition event:', e.error);
+        if (e.error === 'no-speech') {
+          // keep listening if hands-free
+        }
+      };
+
+      recognition.onend = () => {
+        // In continuous hands-free mode, automatically restart listening
+        if (isHandsFree && recognitionRef.current) {
+          try {
+            recognitionRef.current.start();
+          } catch {
+            // ignore
+          }
+        }
       };
 
       recognitionRef.current = recognition;
@@ -223,6 +261,7 @@ export const AudioController: React.FC<AudioControllerProps> = ({
   };
 
   const startSpeechRecognition = () => {
+    speechBufferRef.current = '';
     if (!recognitionRef.current) {
       initSpeechRecognition();
     }
@@ -234,6 +273,11 @@ export const AudioController: React.FC<AudioControllerProps> = ({
   };
 
   const stopSpeechRecognition = () => {
+    if (speechSilenceTimeoutRef.current) {
+      clearTimeout(speechSilenceTimeoutRef.current);
+    }
+    // Flush any pending words when stopped
+    dispatchCapturedSpeech();
     try {
       recognitionRef.current?.stop();
     } catch {
@@ -322,7 +366,7 @@ export const AudioController: React.FC<AudioControllerProps> = ({
           aria-label="Hold to talk"
         >
           <Mic className={`w-5 h-5 ${isRecording ? 'text-white' : 'text-purple-400'}`} />
-          <span>{isRecording ? 'Listening (Release to Send)' : 'Hold to Speak'}</span>
+          <span>{isRecording ? 'Listening...' : 'Tap to Speak'}</span>
         </button>
 
         {/* Continuous Hands-Free Streaming Switch */}
