@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: muraho-voice
+    runtime: docker
+    plan: starter
+    region: oregon
+    branch: main
+    autoDeploy: true
+    dockerfilePath: Dockerfile
+    healthCheckPath: /api/health
+    customDomains:
+      - murahovoice.tech
+      - www.murahovoice.tech
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        sync: false
+      - key: DIGITALOCEAN_HOST
+        sync: false
+      - key: DIGITALOCEAN_API_TOKEN
+        sync: false
+      - key: TINKER_API_KEY
+        sync: false
+      - key: BACKBOARD_API_KEY
+        sync: false
+      - key: BROWSERBASE_API_KEY
+        sync: false
+      - key: BROWSERBASE_PROJECT_ID
+        sync: false
+      - key: PAPER_INSTRUMENTS_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://murahovoice.tech

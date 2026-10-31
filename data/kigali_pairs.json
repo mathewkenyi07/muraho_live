@@ -1,0 +1,212 @@
+{
+  "landmarks": [
+    {
+      "id": "kgl-downtown",
+      "name": "Kigali Downtown (Nyabugogo / City Center)",
+      "aliases": ["downtown", "nyabugogo", "mu mujyi", "gare ya nyabugogo", "quartier commercial"],
+      "coordinates": { "lat": -1.9441, "lng": 30.0444 },
+      "zone": "Nyarugenge"
+    },
+    {
+      "id": "kgl-kcc",
+      "name": "Kigali Convention Centre (KCC)",
+      "aliases": ["kcc", "convention centre", "radisson", "ku kcc", "kimihurura roundabout"],
+      "coordinates": { "lat": -1.9536, "lng": 30.0935 },
+      "zone": "Gasabo"
+    },
+    {
+      "id": "kgl-airport",
+      "name": "Kigali International Airport (Kanombe)",
+      "aliases": ["airport", "kanombe", "ku kibuga", "aeroport", "aerodrome"],
+      "coordinates": { "lat": -1.9686, "lng": 30.1395 },
+      "zone": "Kicukiro"
+    },
+    {
+      "id": "kgl-kimironko",
+      "name": "Kimironko Market",
+      "aliases": ["kimironko", "isoko rya kimironko", "zindiro", "gare ya kimironko"],
+      "coordinates": { "lat": -1.9365, "lng": 30.1298 },
+      "zone": "Gasabo"
+    },
+    {
+      "id": "kgl-chwk",
+      "name": "CHUK Hospital (Kiyovu)",
+      "aliases": ["chuk", "ibitaro bya chuk", "hopital", "kiyovu", "mu bitaro"],
+      "coordinates": { "lat": -1.9547, "lng": 30.0594 },
+      "zone": "Nyarugenge"
+    },
+    {
+      "id": "kgl-remera",
+      "name": "Remera (Giporoso / Amahoro Stadium)",
+      "aliases": ["remera", "giporoso", "stade amahoro", "amahoro", "chez lando"],
+      "coordinates": { "lat": -1.9582, "lng": 30.1127 },
+      "zone": "Gasabo"
+    },
+    {
+      "id": "kgl-nyamirambo",
+      "name": "Nyamirambo (Biryogo / Green Mosque)",
+      "aliases": ["nyamirambo", "biryogo", "ku musigiti", "kosovo", "rwampara"],
+      "coordinates": { "lat": -1.9785, "lng": 30.0492 },
+      "zone": "Nyarugenge"
+    },
+    {
+      "id": "kgl-kacyiru",
+      "name": "Kacyiru (Ministries / US Embassy)",
+      "aliases": ["kacyiru", "ku biro", "embassy", "police headquarters", "king faisal"],
+      "coordinates": { "lat": -1.9351, "lng": 30.0821 },
+      "zone": "Gasabo"
+    }
+  ],
+  "fare_matrix": [
+    {
+      "origin": "kgl-downtown",
+      "destination": "kgl-kcc",
+      "moto_min_rwf": 1000,
+      "moto_fair_rwf": 1200,
+      "moto_max_rwf": 1500,
+      "cab_fair_rwf": 5000,
+      "distance_km": 5.8
+    },
+    {
+      "origin": "kgl-kcc",
+      "destination": "kgl-airport",
+      "moto_min_rwf": 1200,
+      "moto_fair_rwf": 1500,
+      "moto_max_rwf": 2000,
+      "cab_fair_rwf": 7000,
+      "distance_km": 7.4
+    },
+    {
+      "origin": "kgl-downtown",
+      "destination": "kgl-airport",
+      "moto_min_rwf": 2000,
+      "moto_fair_rwf": 2500,
+      "moto_max_rwf": 3000,
+      "cab_fair_rwf": 10000,
+      "distance_km": 11.2
+    },
+    {
+      "origin": "kgl-kimironko",
+      "destination": "kgl-kcc",
+      "moto_min_rwf": 800,
+      "moto_fair_rwf": 1000,
+      "moto_max_rwf": 1300,
+      "cab_fair_rwf": 4500,
+      "distance_km": 4.5
+    },
+    {
+      "origin": "kgl-remera",
+      "destination": "kgl-nyamirambo",
+      "moto_min_rwf": 1500,
+      "moto_fair_rwf": 1800,
+      "moto_max_rwf": 2300,
+      "cab_fair_rwf": 8000,
+      "distance_km": 9.1
+    },
+    {
+      "origin": "kgl-kacyiru",
+      "destination": "kgl-downtown",
+      "moto_min_rwf": 700,
+      "moto_fair_rwf": 900,
+      "moto_max_rwf": 1200,
+      "cab_fair_rwf": 4000,
+      "distance_km": 4.2
+    },
+    {
+      "origin": "kgl-chwk",
+      "destination": "kgl-kcc",
+      "moto_min_rwf": 800,
+      "moto_fair_rwf": 1000,
+      "moto_max_rwf": 1300,
+      "cab_fair_rwf": 4500,
+      "distance_km": 3.9
+    }
+  ],
+  "dialogue_pairs": [
+    {
+      "id": "pair_01",
+      "category": "greeting_and_hail",
+      "kinyarwanda_vernacular": "Bite se motari! Urakataza hehe?",
+      "kinyarwanda_standard": "Bite se motari, uragana hehe?",
+      "english_translation": "How's it going motari! Where are you headed?",
+      "context": "Casual street greeting to a Kigali motorcycle taxi operator",
+      "tone": "friendly_street"
+    },
+    {
+      "id": "pair_02",
+      "category": "bargaining_initial_bid",
+      "kinyarwanda_vernacular": "Ndashaka kugera KCC. Mpa igiciro kizima bro, ntabwo nsomye rimwe.",
+      "kinyarwanda_standard": "Ndashaka kujya ku kigo cya KCC. Mbwira igiciro cyiza, nzi ibiciro.",
+      "english_translation": "I need to get to KCC. Give me a fair price brother, I wasn't born yesterday.",
+      "context": "Negotiating moto fare signaling you know local prices",
+      "tone": "assertive_local"
+    },
+    {
+      "id": "pair_03",
+      "category": "counter_offer",
+      "kinyarwanda_vernacular": "Ibihumbi bibiri birakabije kabisa! Fata igihumbi na magana abiri (1,200 RWF) twigendere.",
+      "kinyarwanda_standard": "Ibihumbi bibiri birarenze cyane. Fata amafaranga igihumbi n'amajana abiri tugende.",
+      "english_translation": "2,000 RWF is way too high! Take 1,200 RWF and let's roll right now.",
+      "context": "Firm counter-offer to overcharging motari",
+      "tone": "street_bargain"
+    },
+    {
+      "id": "pair_04",
+      "category": "deal_agreement",
+      "kinyarwanda_vernacular": "Sawa sawa, tereka ingofero tugende ntwike ikirere!",
+      "kinyarwanda_standard": "Ni byiza, mpa ingofero y'umutekano tugende.",
+      "english_translation": "Deal! Hand over the helmet and let's cruise!",
+      "context": "Accepting price, requesting passenger helmet (ingofero)",
+      "tone": "deal_struck"
+    },
+    {
+      "id": "pair_05",
+      "category": "payment_momo",
+      "kinyarwanda_vernacular": "Ufite nomero ya MoMo cyangwa nishyure kashi?",
+      "kinyarwanda_standard": "Ufite nimero ya MTN Mobile Money cyangwa nishyure amafaranga mu ntoki?",
+      "english_translation": "Do you have a MoMo merchant code or should I pay cash?",
+      "context": "End of ride payment via MTN Mobile Money (*182#)",
+      "tone": "transactional"
+    },
+    {
+      "id": "pair_06",
+      "category": "safety_speed",
+      "kinyarwanda_vernacular": "Motari wangu, gabanya umuvuduko gatoya umuhanda uranyerera!",
+      "kinyarwanda_standard": "Motari, hungabanya umuvuduko kuko umuhanda uranyerera.",
+      "english_translation": "My motari, slow down a bit, the road is slippery from rain!",
+      "context": "Safety prompt during wet weather riding in Kigali",
+      "tone": "safety_warning"
+    },
+    {
+      "id": "pair_07",
+      "category": "direction_stop",
+      "kinyarwanda_vernacular": "Ntegerereza hano kuri kaburimbo, mpagarara ku irembo ry'umweru.",
+      "kinyarwanda_standard": "Mparika hano ku muhanda wa kaburimbo, hafi y'irembo ryera.",
+      "english_translation": "Drop me right here on the tarmac, stop by the white gate.",
+      "context": "Giving precise drop-off instructions to the driver",
+      "tone": "navigational"
+    },
+    {
+      "id": "pair_08",
+      "category": "emergency_help",
+      "kinyarwanda_vernacular": "Hagarara hano vuba! Nkeneye ubufasha bw'imbangukiragutabara cyangwa polisi.",
+      "kinyarwanda_standard": "Hagarara hano vuba! Nkeneye ubufasha bwa polisi n'imbangukiragutabara.",
+      "english_translation": "Stop here immediately! I need police or ambulance emergency assistance.",
+      "context": "Emergency safeguard trigger (handled with care)",
+      "tone": "emergency"
+    }
+  ],
+  "slang_lexicon": {
+    "motari": "Motorcycle taxi operator in Rwanda",
+    "wangu": "My friend / buddy (borrowed from Swahili, heavily used in Kigali)",
+    "kabisa": "Totally / absolutely / completely",
+    "ingofero": "Safety helmet legally mandated for moto passengers in Rwanda",
+    "MoMo": "Mobile Money (dominant payment method via MTN/Airtel in Kigali)",
+    "kashi": "Cash money in notes/coins",
+    "gutwika": "Literally 'to burn', slang for driving fast or doing something exciting",
+    "kuzima": "Fair / proper / solid (e.g. igiciro kizima = a decent fair price)",
+    "kaburimbo": "Paved asphalt road",
+    "sawa sawa": "All good / agreed / okay",
+    "bite se": "What's up / how is it"
+  }
+}
