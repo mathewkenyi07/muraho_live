@@ -1,12 +1,25 @@
 # 🇷🇼 Muraho Voice (`murahovoice.tech`)
 ### Real-Time AI Voice Translator & Cultural Copilot for Kigali, Rwanda
+**Hacktoberfest Hack Day Kigali 2026 — Build54 × ALX × GDG Rwanda × MLH**
 
-[![Render Deployment](https://img.shields.io/badge/Render-1--Click%20Deploy-46E3B7?logo=render&logoColor=white)](https://murahovoice.tech)
+[![Repository](https://img.shields.io/badge/GitHub-mathewkenyi07%2Fmuraho__live-181717?logo=github)](https://github.com/mathewkenyi07/muraho_live)
+[![Live Demo](https://img.shields.io/badge/Demo-murahovoice.tech-46E3B7?logo=render&logoColor=white)](https://murahovoice.tech)
 [![Next.js](https://img.shields.io/badge/Next.js-14%20(App%20Router)-black?logo=next.js)](https://nextjs.org)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready%20(%230F172A)-00A3E0?logo=pwa)](https://murahovoice.tech/manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Muraho Voice** is a real-time, low-latency multimodal voice copilot designed specifically for navigating Kigali, Rwanda. Whether you are haggling a moto fare with a motari in Giporoso, bargaining for passion fruit and avocado in Kimironko Market, or paying via MTN Mobile Money (*182#), Muraho Voice translates vernacular Kinyarwanda street speech, provides real-time fair price benchmarks, alerts you to Rwandan cultural norms, and generates one-tap USSD payment payloads.
+**Muraho Voice** is a real-time, low-latency multimodal voice copilot designed specifically for navigating Kigali, Rwanda. Whether you are haggling a moto fare with a motari in Giporoso, bargaining for passion fruit and avocado in Kimironko Market, or paying via MTN Mobile Money (*182#), Muraho Voice translates vernacular Kinyarwanda street speech, provides real-time fair price benchmarks, alerts you to Rwandan cultural etiquette and safety norms, and generates one-tap USSD payment payloads.
+
+---
+
+## 🏆 Hackathon Prize Tracks & Category Submissions
+
+Muraho Voice was built for **Hacktoberfest Hack Day Kigali 2026 (Build54 & ALX & GDG Rwanda)** and enters the following prize categories:
+
+| Prize Track | Why Muraho Voice Qualifies | Implementation Details |
+| :--- | :--- | :--- |
+| **Best Use of Gemma 4** | Uses open-weight multimodal intelligence for rapid prototyping and lightweight real-world community reasoning. | Harnesses Google Gemma & Gemini for colloquial Kinyarwanda vernacular slang understanding (`Bite se`, `wangu`, `gutwika`), Rwandan transport heuristics, and cultural safety advisories. |
+| **Best Open-Source AI Project** | Fully open-source project (MIT licensed) adapting open-weight speech models for African low-resource languages. | Integrates Hugging Face open-weight Kinyarwanda models (`badrex/w2v-bert-2.0-kinyarwanda-asr` & `facebook/mms-tts-kin`) with an extensible local fallback harness. |
 
 ---
 
@@ -16,7 +29,7 @@
 >
 > *Existing translation apps completely fail here. Google Translate doesn't know Kigali street slang like 'Bite se motari' or 'ntwike ikirere'. It doesn't know RURA regulated fare brackets, and it can't generate the MTN MoMo USSD string you need to settle up.*
 >
-> *Enter **Muraho Voice**. Built with Next.js 14 and powered by **ElevenLabs** for ultra-lifelike Kigali-accented voice output, **Groq** for sub-150ms speech interpretation, and **DigitalOcean** for reliable backend processing.*
+> *Enter **Muraho Voice**. Built with Next.js 14 and powered by **Google Gemma / Gemini** for street slang reasoning, **ElevenLabs** for ultra-lifelike Kigali-accented voice output, and **Groq** for sub-150ms speech interpretation.*
 >
 > *Watch this: I tap the mic and say: 'Hey, I need to get from Kigali Downtown to Kigali Convention Centre. Ask the motari for a fair price.'*
 >
@@ -34,192 +47,195 @@
 
 ```mermaid
 flowchart TD
-    subgraph Client ["Client Layer (Mobile PWA / Browser)"]
+    subgraph Client ["Client Layer (Mobile PWA / Web Audio)"]
         UI["Muraho Voice UI (Next.js 14 / Tailwind CSS)"]
-        MIC["Web Audio / MediaStream API"]
-        PWA["Service Worker & Manifest (#0F172A)"]
-        FS["Fail-Safe Scenario Engine (Offline Fallback)"]
+        MIC["AudioController (MediaStream & Analyser)"]
+        ORB["VisualizerOrb (Dynamic Ambient State)"]
+        HUD["CulturalHUD (Real-Time Safety & Fare Alerts)"]
+        MOMO["MoMoModal (One-Tap USSD *182# Payment)"]
+        FS["FailSafeDrawer (Offline Scenarios)"]
     end
 
-    subgraph Edge ["Edge & API Layer (Next.js Standalone / Render)"]
-        HEALTH["/api/health (Service & Sponsor Telemetry)"]
-        FARES["/api/fares (Kigali Landmark & RURA Matrix)"]
-        ORCH["Voice Agent Orchestrator"]
+    subgraph API ["Next.js API & Orchestration Layer"]
+        TRANSCRIBE["/api/transcribe (Speech-to-Text)"]
+        TRANSLATE["/api/translate (Cultural Dialect Translation)"]
+        TTS["/api/tts-elevenlabs (Voice Synthesis)"]
+        FARES["/api/fares (RURA Fare Matrix)"]
+        MOCKS["/api/mock-scenarios (Acoustic Fail-Safe Engine)"]
+        HEALTH["/api/health (Service Telemetry)"]
     end
 
-    subgraph Sponsors ["Sponsor & Cloud Service Integrations"]
-        EL["ElevenLabs API (Multilingual Low-Latency TTS)"]
-        GROQ["Groq LPU (Sub-150ms Translation Inference)"]
-        DO["DigitalOcean (FastAPI Worker & Object Storage)"]
-        BB["Backboard.io (Realtime State Sync & Memory)"]
-        TK["Tinker (Sandboxed USSD & Tariff Code Execution)"]
-        BS["Browserbase (RURA Fare Regulation Web Scraper)"]
-        PI["Paper Instruments (MoMo & Fintech USSD Formatter)"]
-        GEMINI["Google Gemini 2.0 (Cultural Slang & Heuristics)"]
+    subgraph AI ["AI & Speech Models"]
+        GEMINI["Google Gemini / Gemma (Vernacular Reasoning)"]
+        EL["ElevenLabs (Low-Latency Neural Voice)"]
+        GROQ["Groq LPU (Sub-150ms Translation)"]
+        HF["Hugging Face (w2v-bert-2.0 & mms-tts-kin)"]
     end
 
-    MIC -->|Audio Stream| UI
-    UI -->|Next.js App Router| ORCH
-    PWA -.->|Offline Cache| FS
+    subgraph Services ["Cloud & Fintech Integrations"]
+        TK["Tinker (Sandboxed Fare Calculations)"]
+        BB["Backboard.io (Realtime State Sync)"]
+        BS["Browserbase (RURA Fare Web Scraper)"]
+        PI["Paper Instruments (MoMo USSD Formatter)"]
+        DO["DigitalOcean (FastAPI Worker & Docker)"]
+    end
+
+    MIC -->|Captured Audio Blob| TRANSCRIBE
+    TRANSCRIBE -->|Speech-to-Text| GEMINI
+    TRANSCRIBE -->|Transcribed English/Kinyarwanda| TRANSLATE
+    TRANSLATE -->|Colloquial Dialect & Heuristics| GEMINI
+    TRANSLATE -->|Sub-150ms LPU Inference| GROQ
+    TRANSLATE -->|Sanity Checks & Fare Benchmarks| TK
+    TRANSLATE -->|Formatted USSD *182*8*1#| PI
+    TRANSLATE -->|Voice Synthesis Stream| TTS
+    TTS -->|Neural Voice Synthesis| EL
+    TTS -.->|Open-Weight Model Fallback| HF
+
+    TRANSLATE --> HUD
+    TRANSLATE --> MOMO
+    TTS --> ORB
     FS -.-> UI
-
-    ORCH -->|1. Stream Transcript| GROQ
-    GROQ -->|2. Dialect Interpretation| GEMINI
-    GEMINI -->|3. Local Fare & USSD Rules| TK
-    TK -->|4. Payment String Verification| PI
-    ORCH -->|5. Real-Time Voice Synthesis| EL
-    ORCH -->|6. Sync State & Session History| BB
-    ORCH -->|7. Live RURA Tariff Benchmarks| BS
-    ORCH -->|8. Backend Droplet & Asset Cache| DO
-
-    EL -->|Audio Response Buffer| UI
-    PI -->|MoMo Prompt *182*8*1#| UI
 ```
 
 ---
 
-## 🏆 Hackathon Sponsor Allocation & Prize Track Mapping
+## 🔑 Key Features
 
-Muraho Voice integrates 8 sponsor platforms with deep architectural purpose rather than surface-level wrappers:
+1. **Push-to-Talk & Live Audio Capture (`components/AudioController.tsx`)**
+   - Captures microphone audio using the HTML5 `MediaRecorder` & `AudioContext` APIs.
+   - Real-time frequency analyzer drives the dynamic pulsating visualizer orb.
+   - Automatically posts audio blobs to `/api/transcribe` for instant speech-to-text.
 
-| Sponsor | Primary Prize Track / Category | Integration Detail in Muraho Voice | Key File / Configuration |
-| :--- | :--- | :--- | :--- |
-| **ElevenLabs** | **Best Voice Agent / Most Natural Speech** | Low-latency text-to-speech engine using `eleven_multilingual_v2` for Kigali-accented spoken Kinyarwanda & English dialogue output. | `ELEVENLABS_API_KEY`<br>`ELEVENLABS_VOICE_ID` |
-| **DigitalOcean** | **Best Infrastructure / Cloud Deployment** | Cloud container execution, background FastAPI worker droplets, and S3-compatible Spaces bucket for cached Kigali audio files. | `DIGITALOCEAN_HOST`<br>`DIGITALOCEAN_SPACES_*` |
-| **Tinker** | **Best Autonomous Agent / Tool Calling** | MicroVM sandboxed execution engine for parsing fare matrices, testing USSD string syntax, and calculating dynamic route distances. | `TINKER_API_KEY`<br>`TINKER_WORKSPACE_ID` |
-| **Backboard** | **Best Realtime Architecture / State Sync** | Real-time bi-directional synchronization between passenger session, driver negotiation state, and live transcript history. | `BACKBOARD_API_KEY`<br>`BACKBOARD_WS_URL` |
-| **Browserbase** | **Best Web Agent / Real-World Integration** | Headless cloud browser automation scraping official Rwanda Utilities Regulatory Authority (RURA) gazetted moto taxi tariff tables. | `BROWSERBASE_API_KEY`<br>`BROWSERBASE_PROJECT_ID` |
-| **Paper Instruments** | **Best Fintech / Frontier Payments** | Validates and constructs MTN Mobile Money / Airtel Money USSD codes (`*182*8*1*CODE*AMOUNT#`) preventing passenger fraud. | `PAPER_INSTRUMENTS_API_KEY`<br>`PAPER_INSTRUMENTS_MERCHANT_PREFIX` |
-| **Groq** | **Ultra-Fast LPU Inference** | Sub-150ms Llama-3-70B pipeline for lightning-fast speech comprehension and immediate street-corner dialogue translation. | `GROQ_API_KEY` |
-| **Google Gemini** | **Multimodal Cultural Reasoning** | Context engine resolving complex vernacular Kinyarwanda idioms (`gutwika`, `wangu`, `ingofero`) and tourist safety alerts. | `GEMINI_API_KEY` |
+2. **Multilingual Street Vernacular Engine (`app/api/translate/route.ts`)**
+   - Translates spoken queries into natural, street-smart Kinyarwanda rather than robotic formal text.
+   - Contextualizes Rwandan slang words (*bro*, *wangu*, *gutwika*, *ingofero*, *motari*).
 
----
+3. **Cultural HUD & Transport Safety Alerts (`components/CulturalHUD.tsx`)**
+   - **Ingofero Helmet Safety:** Prompts users to inspect driver-provided helmets.
+   - **RURA Fare Regulations:** Automatically displays official price brackets for route pairs across Kigali.
+   - **Market Etiquette Tips:** Explains cultural greeting norms (*Mwaramutse* / *Muraho*) that foster fair vendor relationships.
 
-## 🚀 Live Demo Walk-Through & Fail-Safe Scenarios
+4. **1-Tap MTN Mobile Money (*182#) USSD Dialer (`components/MoMoModal.tsx`)**
+   - Formats merchant codes directly into mobile-dialable USSD syntax: `*182*8*1*MERCHANT_CODE*AMOUNT#`.
+   - Supports 1-click clipboard copy and direct mobile tel URI dialing (`tel:*182*8*1*...#`).
 
-For live judging presentations, connectivity glitches can ruin a pitch. Muraho Voice comes equipped with **3 instant fail-safe simulated scenarios** loaded in [`data/kigali_pairs.json`](file:///home/matt/hackathon/data/kigali_pairs.json) and ready on the UI:
-
-### Scenario 1: The Airport to KCC Motari Haggle (`moto`)
-- **Situation:** Tourist arriving at Kigali International Airport needing a moto to Kigali Convention Centre.
-- **User Voice Input:** *"Hey, I'm at the airport and need to go to KCC. Get me a fair moto price."*
-- **Muraho Voice Spoken Output:** *"Ndashaka kugera KCC. Mpa igiciro kizima bro, ntabwo nsomye rimwe."* (I need to get to KCC. Give me a fair price brother, I wasn't born yesterday.)
-- **Cultural Alert Fired:**
-  - 🟢 **Fair Fare Benchmark:** `1,200 – 1,500 RWF` (Airport premium max 2,000 RWF). Cab benchmark: `7,000 RWF`.
-  - 🛡️ **Safety Rule:** Always confirm the driver provides an *ingofero* (sanitized passenger helmet).
-- **Payment Payload:** Prepares MTN MoMo code `*182*8*1*KCC01*1500#`.
-
-### Scenario 2: Kimironko Market Passion Fruit Bargain (`market`)
-- **Situation:** Purchasing 2 kilograms of passion fruit (*marakuja*) and avocado from a local vendor.
-- **User Voice Input:** *"Can you ask how much 2 kilos of passion fruit are, and offer 2,000 francs?"*
-- **Muraho Voice Spoken Output:** *"Marakuja z'ibiro bibiri ni angahe? Fata ibihumbi bibiri n'iijana (2,100 RWF) byose hamwe."*
-- **Cultural Alert Fired:**
-  - 💡 **Etiquette Tip:** In Kimironko, greeting the vendor warmly with *"Mwaramutse"* or *"Muraho"* before asking prices immediately yields a 20% friendlier quote.
-
-### Scenario 3: Cashless MoMo Settlement (*182#) (`momo`)
-- **Situation:** Ride completed at Remera / Giporoso, motari points to his merchant badge.
-- **User Voice Input:** *"Ask for his MoMo code so I can pay 1,200 francs directly."*
-- **Muraho Voice Spoken Output:** *"Ufite nomero ya MoMo cyangwa nishyure kashi?"*
-- **Fintech Action:** Pops up a 1-tap USSD dialer button formatted with Paper Instruments: `tel:*182*8*1*883012*1200#`.
+5. **Acoustic Fail-Safe Engine (`components/FailSafeDrawer.tsx`)**
+   - Equipped with pre-cached audio and text dialogues for the 3 primary situations:
+     - **Moto Haggle:** Airport to Kigali Convention Centre (KCC).
+     - **Market Bargain:** Kimironko Market passion fruit (*marakuja*) purchase.
+     - **MoMo Settlement:** End-of-ride mobile payment settlement.
 
 ---
 
-## 🛠️ Local Installation & Development
+## 🛠️ Tech Stack & Integrations
+
+- **Frontend:** Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Lucide Icons
+- **Audio Engine:** Web Audio API (`AudioContext`, `AnalyserNode`, `MediaStream`)
+- **AI Models:**
+  - **Google Gemini 2.5 & Gemma:** Audio transcription, cultural nuance translation, and safety guardrails.
+  - **ElevenLabs:** Low-latency neural voice synthesis (`eleven_multilingual_v2`).
+  - **Groq LPU:** High-throughput sub-150ms translation inference.
+  - **Hugging Face / Open-Source Models:** `badrex/w2v-bert-2.0-kinyarwanda-asr` & `facebook/mms-tts-kin`.
+- **Infrastructure & Tools:**
+  - **DigitalOcean & Docker:** Multi-stage production container and background worker.
+  - **Backboard.io:** Session state synchronization.
+  - **Browserbase:** Headless automated RURA fare scraping.
+  - **Paper Instruments:** USSD fintech payload generation.
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 - Node.js `20.x` or later
 - npm `10.x` or later (or Docker)
 
-### 1. Clone & Install Dependencies
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/muraho-voice.git
-cd muraho-voice
+git clone https://github.com/mathewkenyi07/muraho_live.git
+cd muraho_live
+```
+
+### 2. Install Dependencies
+```bash
 npm install
 ```
 
-### 2. Configure Environment Variables
-Copy `.env.example` to `.env.local` and configure your API tokens:
+### 3. Configure Environment Variables
+Copy `.env.example` to `.env.local`:
 ```bash
 cp .env.example .env.local
 ```
+Add your API keys to `.env.local`:
+```env
+# Google Gemini (STT & Multimodal Reasoning)
+GEMINI_API_KEY=your_gemini_api_key_here
 
-### 3. Run Development Server
+# ElevenLabs (Low-Latency Spoken Voice)
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+ELEVENLABS_VOICE_ID=your_voice_id_here
+
+# Groq (Optional LPU Accelerator)
+GROQ_API_KEY=your_groq_api_key_here
+```
+*(Note: Muraho Voice includes built-in offline fallbacks and browser speech synthesis so the app remains interactive even without external keys!)*
+
+### 4. Run the Development Server
 ```bash
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 4. Verify System Health Endpoint
+---
+
+## 📡 API Endpoints
+
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/transcribe` | `POST` | Accepts audio stream (`multipart/form-data` or base64 JSON) and transcribes spoken English/Kinyarwanda. |
+| `/api/translate` | `POST` | Interprets street dialogue, applies cultural heuristics, calculates RURA fare brackets, and builds MoMo USSD strings. |
+| `/api/tts-elevenlabs` | `POST` | Synthesizes high-fidelity Kigali-accented voice output. |
+| `/api/fares` | `GET` | Returns landmark fare benchmarks and route distance matrices across Kigali. |
+| `/api/mock-scenarios` | `POST` | Acoustic fail-safe simulator providing instant responses for demo scenarios. |
+| `/api/health` | `GET` | Service telemetry and integration status health check. |
+
+---
+
+## 🐳 Docker Deployment
+
+Build and run using the optimized multi-stage container:
+
 ```bash
+# Build Docker image
+docker build -t murahovoice:latest .
+
+# Run container
+docker run -d -p 3000:3000 --env-file .env.local --name muraho-app murahovoice:latest
+
+# Verify health
 curl http://localhost:3000/api/health
 ```
-Response:
-```json
-{
-  "status": "ok",
-  "service": "muraho-voice",
-  "version": "1.0.0",
-  "region": "kigali-rwanda",
-  "sponsors": {
-    "elevenlabs": true,
-    "digitalocean": true,
-    "tinker": true,
-    "backboard": true,
-    "browserbase": true,
-    "paperInstruments": true,
-    "gemini": true,
-    "groq": true
-  }
-}
-```
 
 ---
 
-## 🐳 Docker Production Setup
+## 📱 Progressive Web App (PWA)
 
-Muraho Voice utilizes a multi-stage Docker build producing an optimized standalone Next.js artifact under ~130MB.
-
-### 1. Build the Docker Image
-```bash
-docker build -t murahovoice:latest .
-```
-
-### 2. Run the Container
-```bash
-docker run -d \
-  --name muraho-app \
-  -p 3000:3000 \
-  --env-file .env.local \
-  murahovoice:latest
-```
-
-### 3. Check Container Health
-```bash
-docker inspect --format='{{json .State.Health.Status}}' muraho-app
-```
-
----
-
-## ☁️ 1-Click Deployment to Render (`murahovoice.tech`)
-
-The repository includes a root [`render.yaml`](file:///home/matt/hackathon/render.yaml) blueprint:
-
-1. Connect your GitHub repository to [Render.com](https://render.com).
-2. Create a **New Blueprint Instance** and select the repository.
-3. Render reads `render.yaml`, configures the Docker runtime, assigns the custom domains `murahovoice.tech` & `www.murahovoice.tech`, and monitors `/api/health`.
-4. Enter your sponsor API keys in the Render Environment Dashboard.
-5. Deploy takes under 3 minutes with automatic zero-downtime rolling updates.
-
----
-
-## 📱 Progressive Web App (PWA) Features
-
+Muraho Voice is fully configured as an installable mobile PWA:
 - **Theme Color:** `#0F172A` (Slate 900 Kigali Night)
-- **Display Mode:** `standalone` (Full mobile app experience without browser navigation bar)
-- **App Icons:** High-resolution SVG and maskable icons in [`public/manifest.json`](file:///home/matt/hackathon/public/manifest.json)
-- **Shortcuts:** One-tap quick actions for *Hail Motari*, *Kimironko Market*, and *Pay with MoMo*.
+- **Display Mode:** `standalone` (Nav-free mobile experience)
+- **Manifest:** Defined in [`public/manifest.json`](public/manifest.json) with high-res maskable icons.
+- **Quick Shortcuts:** Instant 1-tap shortcuts for *Hail Motari*, *Kimironko Market*, and *Pay with MoMo*.
+
+---
+
+## 👥 Hackathon Team & Acknowledgements
+
+- **Developer:** Mathew Isaac ([@mathewkenyi07](https://github.com/mathewkenyi07))
+- **Event:** [Hacktoberfest Hack Day Kigali 2026](https://www.mlh.com/events/hacktoberfest-hack-day-kigali-x-build54-africa-foundation)
+- **Partners:** Build54 Africa Foundation, ALX Rwanda, GDG Rwanda, and Major League Hacking (MLH).
 
 ---
 
 ## 📄 License
 
-Distributed under the MIT License. Built with ❤️ for Kigali, Rwanda.
+This project is licensed under the [MIT License](LICENSE). Built with ❤️ for Kigali, Rwanda.
