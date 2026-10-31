@@ -1,4 +1,4 @@
-# 🇷🇼 Muraho Live (`murahovoice.tech`)
+# 🇷🇼 Muraho Live 
 ### Real-Time AI Voice Translator & Cultural Copilot for Kigali, Rwanda
 **Hacktoberfest Hack Day Kigali 2026 — Build54 × ALX × GDG Rwanda × MLH**
 

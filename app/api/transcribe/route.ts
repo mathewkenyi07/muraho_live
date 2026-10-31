@@ -65,47 +65,58 @@ export async function POST(req: NextRequest) {
     const promptText =
       'You are a speech-to-text transcriber. Transcribe the spoken words from this audio. Output JSON format: {"transcription": "<spoken words>"}. If no clear speech is heard, return {"transcription": ""}';
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash'];
+    let lastError = '';
+    let data: any = null;
 
-    const geminiPayload = {
-      contents: [
-        {
-          parts: [
-            {
-              inlineData: {
-                mimeType,
-                data: base64Audio,
+    for (const model of modelsToTry) {
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const geminiPayload = {
+        contents: [
+          {
+            parts: [
+              {
+                inlineData: {
+                  mimeType,
+                  data: base64Audio,
+                },
               },
-            },
-            {
-              text: promptText,
-            },
-          ],
+              {
+                text: promptText,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
         },
-      ],
-      generationConfig: {
-        responseMimeType: 'application/json',
-      },
-    };
+      };
 
-    const response = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(geminiPayload),
-    });
+      try {
+        const response = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(geminiPayload),
+        });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('[API /transcribe] Gemini API error:', response.status, errText);
-      return NextResponse.json(
-        { success: false, error: `Gemini API returned error: ${response.status}`, details: errText },
-        { status: response.status }
-      );
+        if (response.ok) {
+          data = await response.json();
+          break;
+        } else {
+          lastError = await response.text();
+          console.warn(`[API /transcribe] Model ${model} returned error:`, lastError);
+        }
+      } catch (err: any) {
+        lastError = err?.message || String(err);
+      }
     }
 
-    const data = await response.json();
+    if (!data) {
+      return NextResponse.json(
+        { success: false, error: 'Transcription service unavailable', details: lastError },
+        { status: 502 }
+      );
+    }
     const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     let transcription = '';

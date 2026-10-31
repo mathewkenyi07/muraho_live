@@ -118,20 +118,42 @@ export const AudioController: React.FC<AudioControllerProps> = ({
     onVoiceStateChange('thinking');
 
     try {
+      // 1. If client SpeechRecognition already captured words, use them immediately
+      const clientSpeech = speechBufferRef.current.trim();
+      if (clientSpeech && onUserSpeechDetected) {
+        speechBufferRef.current = '';
+        onUserSpeechDetected(clientSpeech);
+        return;
+      }
+
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        mediaRecorderRef.current.stop();
+        try {
+          mediaRecorderRef.current.stop();
+        } catch {
+          // ignore
+        }
       }
 
       // Small delay to ensure last dataavailable event fires
-      await new Promise((r) => setTimeout(r, 120));
+      await new Promise((r) => setTimeout(r, 150));
+
+      // Check again after recorder stop in case speech recognition flushed final words
+      const lateClientSpeech = speechBufferRef.current.trim();
+      if (lateClientSpeech && onUserSpeechDetected) {
+        speechBufferRef.current = '';
+        onUserSpeechDetected(lateClientSpeech);
+        return;
+      }
 
       const chunks = [...recordedChunksRef.current];
       recordedChunksRef.current = [];
 
       if (chunks.length > 0) {
-        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
+        const audioBlob = new Blob(chunks, { type: mimeType });
+        const ext = mimeType.includes('mp4') ? 'recording.mp4' : 'recording.webm';
         const formData = new FormData();
-        formData.append('audio', audioBlob, 'recording.webm');
+        formData.append('audio', audioBlob, ext);
 
         const res = await fetch('/api/transcribe', {
           method: 'POST',
@@ -143,17 +165,17 @@ export const AudioController: React.FC<AudioControllerProps> = ({
           const transcription = (data.text || '').trim();
           if (transcription && onUserSpeechDetected) {
             onUserSpeechDetected(transcription);
-          } else {
-            onVoiceStateChange('idle');
+            return;
           }
-        } else {
-          onVoiceStateChange('idle');
         }
-      } else {
-        onVoiceStateChange('idle');
       }
+
+      // If neither client recognition nor server transcribe caught speech:
+      setAudioError('No speech detected. Please speak closer to your microphone or type your message.');
+      onVoiceStateChange('idle');
     } catch (err) {
       console.warn('Transcription error:', err);
+      setAudioError('Could not process speech. Please type your message.');
       onVoiceStateChange('idle');
     } finally {
       isSendingAudioRef.current = false;
@@ -224,6 +246,11 @@ export const AudioController: React.FC<AudioControllerProps> = ({
       setStreamActive(true);
       onVoiceStateChange('listening');
       startVolumeMeter();
+      try {
+        startSpeechRecognition();
+      } catch (e) {
+        console.warn('SpeechRecognition start skipped:', e);
+      }
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : 'Microphone access denied';
       console.warn('Microphone permission or hardware error:', errorMsg);
@@ -234,6 +261,12 @@ export const AudioController: React.FC<AudioControllerProps> = ({
   };
 
   const stopAudioCapture = () => {
+    try {
+      recognitionRef.current?.stop();
+    } catch {
+      // ignore
+    }
+
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       try {
         mediaRecorderRef.current.stop();

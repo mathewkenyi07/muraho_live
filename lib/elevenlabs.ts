@@ -80,14 +80,14 @@ export class ElevenLabsService {
       }
     }
 
-    // 2. High-Fidelity Neural Voice Synthesis via Gemini 2.5 Flash Preview TTS
+    // 2. High-Fidelity Neural Voice Synthesis via Gemini 2.0 Flash Audio Modality
     const geminiKey = process.env.GEMINI_API_KEY;
     if (geminiKey) {
       try {
-        const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${geminiKey}`;
+        const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
         const payload = {
           contents: [{
-            parts: [{ text: `Read this Kinyarwanda phrase aloud clearly and naturally: "${req.text}"` }]
+            parts: [{ text: `Say this phrase in Kinyarwanda clearly: ${req.text}` }]
           }],
           generationConfig: {
             responseModalities: ["AUDIO"],
