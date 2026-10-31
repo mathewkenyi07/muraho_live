@@ -36,34 +36,14 @@ export default function MurahoVoiceApp() {
   const [momoModalData, setMomoModalData] = useState<MoMoPaymentData | null>(null);
   const [isMoMoOpen, setIsMoMoOpen] = useState<boolean>(false);
 
-  // Cultural alerts HUD
-  const [alerts, setAlerts] = useState<CulturalAlert[]>([
-    {
-      id: 'welcome-tip',
-      type: 'tip',
-      title: 'Muraho Voice Active',
-      description: 'Listening for English & Kinyarwanda queries. Try asking about moto taxi fares or market prices!',
-      badge: 'Rwanda AI',
-      kinyarwandaPhrase: 'Muraho, nshobora kugufasha iki?',
-      translation: 'Hello, how can I help you?',
-    },
-  ]);
+  // Cultural alerts HUD (starts empty, pops up dynamically when relevant)
+  const [alerts, setAlerts] = useState<CulturalAlert[]>([]);
 
-  // Transcripts list
-  const [transcripts, setTranscripts] = useState<TranscriptMessage[]>([
-    {
-      id: 'init-1',
-      sender: 'assistant',
-      text: 'Muraho neza! I am your real-time Kigali bilingual voice assistant. How can I help you today?',
-      kinyarwandaSnippet: 'Muraho neza! Niteguye kugufasha mu ruzinduko rwawe.',
-      timestamp: '14:30',
-    },
-  ]);
+  // Transcripts list (starts clean)
+  const [transcripts, setTranscripts] = useState<TranscriptMessage[]>([]);
 
   // Active subtitle text (streaming preview)
-  const [liveSubtitle, setLiveSubtitle] = useState<string>(
-    'Muraho neza! Speak naturally or tap a scenario below.'
-  );
+  const [liveSubtitle, setLiveSubtitle] = useState<string>('');
 
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -158,23 +138,9 @@ export default function MurahoVoiceApp() {
     }
     setVoiceState('idle');
     setActiveScenarioId(null);
-    setAlerts([
-      {
-        id: 'reset-tip',
-        type: 'tip',
-        title: 'New Session Started',
-        description: 'Session cleared. Ready for your live voice queries.',
-      },
-    ]);
-    setTranscripts([
-      {
-        id: `init-${Date.now()}`,
-        sender: 'assistant',
-        text: 'Muraho neza! Ask me about moto fares, Nyabugogo routes, or Kimironko market prices.',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      },
-    ]);
-    setLiveSubtitle('Session reset. Ready to listen.');
+    setAlerts([]);
+    setTranscripts([]);
+    setLiveSubtitle('');
   };
 
   return (
@@ -183,24 +149,21 @@ export default function MurahoVoiceApp() {
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-purple-700/10 rounded-full blur-[140px] pointer-events-none animate-pulse-subtle" />
       <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Top Navigation Bar */}
-      <header className="relative z-20 flex items-center justify-between px-5 py-4 border-b border-white/5 backdrop-blur-xl bg-zinc-950/60">
+      {/* Top Navigation Bar: Minimalist Gemini Header */}
+      <header className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/5 backdrop-blur-2xl bg-black/40">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-amber-500 flex items-center justify-center font-black text-white text-base shadow-lg shadow-purple-600/20">
-            M
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 flex items-center justify-center font-bold text-white text-sm shadow-lg shadow-cyan-500/20">
+            ✦
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-extrabold tracking-tight text-white">
-                Muraho Voice
+              <h1 className="text-sm font-semibold tracking-wide text-zinc-100">
+                Muraho Live
               </h1>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Live STT/TTS
-              </span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </div>
-            <p className="text-[11px] text-zinc-400">
-              Kinyarwanda &bull; English Bilingual AI
+            <p className="text-[11px] text-zinc-400 font-mono tracking-tight">
+              English &bull; Kinyarwanda
             </p>
           </div>
         </div>
@@ -210,28 +173,28 @@ export default function MurahoVoiceApp() {
           {momoModalData && (
             <button
               onClick={() => setIsMoMoOpen(true)}
-              className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-lg shadow-amber-500/10"
+              className="px-3 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm"
               title="Open MTN MoMo Pay"
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span>MoMo Pay</span>
+              <span>MoMo</span>
             </button>
           )}
 
           <button
             onClick={handleResetSession}
-            className="p-2 rounded-xl text-zinc-400 hover:text-white bg-zinc-900/80 hover:bg-zinc-800 border border-white/5 transition-colors"
+            className="p-2 rounded-full text-zinc-400 hover:text-white bg-zinc-900/60 hover:bg-zinc-800 border border-white/5 transition-colors"
             title="Reset conversation"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-between px-4 pb-24 pt-2 overflow-y-auto max-w-2xl mx-auto w-full">
-        {/* Cultural HUD Alerts (Top floating) */}
-        <div className="w-full mb-2">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-between px-4 pb-20 pt-2 overflow-y-auto max-w-xl mx-auto w-full">
+        {/* Cultural HUD Alerts (Glides in only when relevant) */}
+        <div className="w-full mb-1">
           <CulturalHUD
             alerts={alerts}
             onDismiss={handleDismissAlert}
@@ -240,11 +203,11 @@ export default function MurahoVoiceApp() {
         </div>
 
         {/* Center Visualizer Orb */}
-        <div className="my-auto flex flex-col items-center justify-center py-4">
+        <div className="my-auto flex flex-col items-center justify-center py-6 w-full">
           <VisualizerOrb
             state={voiceState}
             audioLevel={audioLevel}
-            size={270}
+            size={280}
             onClick={() => {
               if (voiceState === 'idle') {
                 setVoiceState('listening');
@@ -257,45 +220,48 @@ export default function MurahoVoiceApp() {
             }}
           />
 
-          {/* Subtitle / Live Transcript Banner */}
-          <div className="mt-4 max-w-md w-full px-4 text-center">
-            <p className="text-sm font-medium text-zinc-300 leading-snug tracking-tight drop-shadow-md">
-              &ldquo;{liveSubtitle}&rdquo;
-            </p>
+          {/* Subtitle / Live Transcript Preview (Fluid Gemini streaming style) */}
+          <div className="mt-6 max-w-md w-full px-4 text-center min-h-[32px] flex items-center justify-center">
+            {liveSubtitle ? (
+              <p className="text-sm font-light text-zinc-200 tracking-wide leading-relaxed animate-fade-in drop-shadow-sm">
+                &ldquo;{liveSubtitle}&rdquo;
+              </p>
+            ) : (
+              <p className="text-xs font-light text-zinc-500 tracking-wider font-mono">
+                {voiceState === 'listening' ? 'Listening...' : 'Tap or hold mic to speak'}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Real-time Subtitles / Chat Transcript Accordion Drawer */}
-        <div className="w-full bg-zinc-900/60 backdrop-blur-md rounded-2xl border border-white/5 p-3.5 max-h-40 overflow-y-auto mb-3 shadow-inner">
-          <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-            <span>Live Transcript Stream</span>
-            <span className="text-[10px] text-zinc-500 font-mono">Bilingual Feed</span>
-          </div>
-
-          <div className="space-y-2">
-            {transcripts.map((msg) => (
-              <div
-                key={msg.id}
-                className={`text-xs p-2 rounded-xl leading-relaxed ${
-                  msg.sender === 'user'
-                    ? 'bg-purple-950/40 border border-purple-800/30 text-purple-200 ml-6 text-right'
-                    : 'bg-zinc-800/70 border border-white/5 text-zinc-200 mr-6 text-left'
-                }`}
-              >
-                <div className="font-semibold text-[10px] text-zinc-400 uppercase tracking-wide mb-0.5">
-                  {msg.sender === 'user' ? 'You' : 'Muraho Assistant'} &bull; {msg.timestamp}
-                </div>
-                <div>{msg.text}</div>
-                {msg.kinyarwandaSnippet && (
-                  <div className="mt-1 text-emerald-400 text-[11px] italic font-medium">
-                    {msg.kinyarwandaSnippet}
+        {/* Real-time Subtitles / Chat Transcript (Shows dynamically only when messages exist) */}
+        {transcripts.length > 0 && (
+          <div className="w-full bg-zinc-900/40 backdrop-blur-xl rounded-2xl border border-white/5 p-3.5 max-h-36 overflow-y-auto mb-3 transition-all animate-fade-in">
+            <div className="space-y-2">
+              {transcripts.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`text-xs p-2 rounded-xl leading-relaxed ${
+                    msg.sender === 'user'
+                      ? 'bg-blue-950/30 border border-blue-800/20 text-zinc-200 ml-6 text-right'
+                      : 'bg-zinc-800/40 border border-white/5 text-zinc-200 mr-6 text-left'
+                  }`}
+                >
+                  <div className="font-mono text-[9px] text-zinc-400 uppercase tracking-widest mb-0.5">
+                    {msg.sender === 'user' ? 'You' : 'Muraho'} &bull; {msg.timestamp}
                   </div>
-                )}
-              </div>
-            ))}
-            <div ref={transcriptEndRef} />
+                  <div>{msg.text}</div>
+                  {msg.kinyarwandaSnippet && (
+                    <div className="mt-1 text-cyan-400 text-[11px] font-medium font-sans">
+                      {msg.kinyarwandaSnippet}
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div ref={transcriptEndRef} />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Audio Controller (PTT and hands-free toggle) */}
         <div className="w-full mb-1">
