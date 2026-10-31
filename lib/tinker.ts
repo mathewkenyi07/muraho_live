@@ -80,12 +80,45 @@ export class TinkerClient {
       }
     }
 
+    // Real-time live translation for ANY arbitrary English or Kinyarwanda input
+    try {
+      const sl = req.sourceLang;
+      const tl = req.targetLang;
+      const gtxUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(req.text.trim())}`;
+      const gtxRes = await fetch(gtxUrl, { cache: 'no-store' });
+      if (gtxRes.ok) {
+        const data = await gtxRes.json();
+        const translated: string = data[0]?.map((item: any) => item[0]).join('') || '';
+        if (translated) {
+          const vernacular = this.embellishWithVernacular(translated, req.text);
+          return {
+            translatedText: translated,
+            vernacularText: vernacular,
+            detectedSlang: this.extractSlang(vernacular),
+            modelUsed: 'live-neural-translator',
+            latencyMs: Date.now() - startTime,
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('[TinkerClient] Live translation API error, checking fallback pairs:', e);
+    }
+
     // Heuristic Kigali Street Vernacular Fallback Engine
     const fallbackResult = this.generateFallbackVernacular(req);
     return {
       ...fallbackResult,
       latencyMs: Date.now() - startTime,
     };
+  }
+
+  private embellishWithVernacular(translation: string, original: string): string {
+    const origLower = original.toLowerCase();
+    // Add natural vernacular touch if transit or informal
+    if (origLower.includes('please') && !translation.toLowerCase().includes('murakoze')) {
+      return `${translation}, murakoze`;
+    }
+    return translation;
   }
 
   private buildTinkerPrompt(req: TinkerTranslateRequest): string {

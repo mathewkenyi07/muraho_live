@@ -51,24 +51,48 @@ export default function MurahoVoiceApp() {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [transcripts]);
 
-  // Audio speech synthesis helper
-  const speakText = (text: string) => {
-    if (isMuted || typeof window === 'undefined' || !window.speechSynthesis) return;
+  // Audio speech synthesis helper (ElevenLabs Flash v2.5 + Web Speech fallback)
+  const speakText = async (text: string) => {
+    if (isMuted || typeof window === 'undefined') return;
+
+    // First attempt ElevenLabs Flash v2.5 or backend speech endpoint
+    try {
+      const ttsRes = await fetch('/api/tts-elevenlabs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, format: 'base64' }),
+      });
+
+      if (ttsRes.ok) {
+        const data = await ttsRes.json();
+        if (data.audioBase64) {
+          const audio = new Audio(`data:${data.contentType || 'audio/mpeg'};base64,${data.audioBase64}`);
+          audio.onplay = () => setVoiceState('speaking');
+          audio.onended = () => setVoiceState('idle');
+          audio.onerror = () => {
+            setVoiceState('idle');
+            fallbackWebSpeech(text);
+          };
+          audio.play().catch(() => fallbackWebSpeech(text));
+          return;
+        }
+      }
+    } catch {
+      // ignore and use Web Speech API
+    }
+
+    fallbackWebSpeech(text);
+  };
+
+  const fallbackWebSpeech = (text: string) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
+    utterance.rate = 0.95;
     utterance.pitch = 1.0;
-
-    utterance.onstart = () => {
-      setVoiceState('speaking');
-    };
-    utterance.onend = () => {
-      setVoiceState('idle');
-    };
-    utterance.onerror = () => {
-      setVoiceState('idle');
-    };
-
+    utterance.onstart = () => setVoiceState('speaking');
+    utterance.onend = () => setVoiceState('idle');
+    utterance.onerror = () => setVoiceState('idle');
     window.speechSynthesis.speak(utterance);
   };
 
@@ -298,42 +322,49 @@ export default function MurahoVoiceApp() {
 
                 if (res.ok) {
                   const data = await res.json();
-                  const translationText = data.data?.translation || data.translation || 'Sawa sawa, niteguye kugufasha.';
-                  const culturalTip = data.data?.cultural_tip || data.culturalTip;
+                  const translationText =
+                    data.translatedText ||
+                    data.vernacularText ||
+                    data.data?.translation ||
+                    data.translation ||
+                    '';
+                  const culturalTip = data.culturalWarning || data.data?.cultural_tip;
 
-                  const assistantMsg: TranscriptMessage = {
-                    id: `ast-${Date.now()}`,
-                    sender: 'assistant',
-                    text: data.data?.english_meaning || speechText,
-                    kinyarwandaSnippet: translationText,
-                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                  };
+                  if (translationText) {
+                    const assistantMsg: TranscriptMessage = {
+                      id: `ast-${Date.now()}`,
+                      sender: 'assistant',
+                      text: speechText,
+                      kinyarwandaSnippet: translationText,
+                      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    };
 
-                  setTranscripts((prev) => [...prev, assistantMsg]);
-                  setLiveSubtitle(translationText);
+                    setTranscripts((prev) => [...prev, assistantMsg]);
+                    setLiveSubtitle(translationText);
 
-                  if (culturalTip) {
-                    setAlerts((prev) => [
-                      {
-                        id: `tip-${Date.now()}`,
-                        type: 'tip',
-                        title: 'Kigali Etiquette & Fare Context',
-                        description: culturalTip,
-                        badge: 'Tinker LoRA + Paper Instruments',
-                      },
-                      ...prev,
-                    ]);
+                    if (culturalTip) {
+                      setAlerts((prev) => [
+                        {
+                          id: `tip-${Date.now()}`,
+                          type: 'tip',
+                          title: 'Etiquette Context',
+                          description: culturalTip,
+                        },
+                        ...prev,
+                      ]);
+                    }
+
+                    speakText(translationText);
+                    return;
                   }
-
-                  speakText(translationText);
-                  return;
                 }
               } catch (e) {
-                console.warn('API error, falling back to scenario', e);
+                console.warn('API error translating live speech:', e);
               }
 
-              // Fallback
-              handleSelectScenario(DEMO_SCENARIOS[0]);
+              // In case of network failure, inform user cleanly
+              setLiveSubtitle('Could not reach translation network. Please try again.');
+              setVoiceState('idle');
             }}
           />
         </div>

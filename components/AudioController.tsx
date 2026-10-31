@@ -178,7 +178,70 @@ export const AudioController: React.FC<AudioControllerProps> = ({
     onAudioLevelChange(0.04);
   };
 
-  // Safe fallback synthesizer for simulated voice demo
+  // Speech Recognition ref for live microphone speech-to-text
+  const recognitionRef = useRef<any>(null);
+
+  // Initialize Speech Recognition
+  const initSpeechRecognition = () => {
+    if (typeof window === 'undefined') return;
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) {
+      console.warn('SpeechRecognition API not available in this browser');
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRec();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event: any) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          }
+        }
+
+        const trimmed = finalTranscript.trim();
+        if (trimmed && onUserSpeechDetected) {
+          onVoiceStateChange('thinking');
+          onUserSpeechDetected(trimmed);
+        }
+      };
+
+      recognition.onerror = (e: any) => {
+        console.warn('Speech recognition event:', e.error);
+      };
+
+      recognitionRef.current = recognition;
+    } catch (err) {
+      console.warn('Could not initialize SpeechRecognition:', err);
+    }
+  };
+
+  const startSpeechRecognition = () => {
+    if (!recognitionRef.current) {
+      initSpeechRecognition();
+    }
+    try {
+      recognitionRef.current?.start();
+    } catch {
+      // already started or not ready
+    }
+  };
+
+  const stopSpeechRecognition = () => {
+    try {
+      recognitionRef.current?.stop();
+    } catch {
+      // ignore
+    }
+  };
+
+  // Safe fallback synthesizer when no mic is detected
   const simulateAudioPulse = () => {
     setIsRecording(true);
     onVoiceStateChange('listening');
@@ -187,15 +250,11 @@ export const AudioController: React.FC<AudioControllerProps> = ({
       step++;
       const simulatedLvl = 0.2 + Math.abs(Math.sin(step * 0.3)) * 0.5;
       onAudioLevelChange(simulatedLvl);
-      if (step > 30) {
+      if (step > 25) {
         clearInterval(interval);
         setIsRecording(false);
         onAudioLevelChange(0.04);
-        onVoiceStateChange('thinking');
-        setTimeout(() => {
-          onVoiceStateChange('speaking');
-          if (onUserSpeechDetected) onUserSpeechDetected('Ndashaka moto ijya Kimironko');
-        }, 1200);
+        onVoiceStateChange('idle');
       }
     }, 100);
   };
@@ -207,19 +266,14 @@ export const AudioController: React.FC<AudioControllerProps> = ({
       interruptSpeaking();
     }
     startAudioCapture();
+    startSpeechRecognition();
   };
 
   const handlePushToTalkEnd = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     if (!isHandsFree && isRecording) {
       stopAudioCapture();
-      onVoiceStateChange('thinking');
-      // Trigger user speech recognition simulation after release if no hardware STT
-      setTimeout(() => {
-        if (onUserSpeechDetected) {
-          onUserSpeechDetected('Ndashaka kumenya igiciro cya moto');
-        }
-      }, 900);
+      stopSpeechRecognition();
     }
   };
 
@@ -227,10 +281,12 @@ export const AudioController: React.FC<AudioControllerProps> = ({
     if (isHandsFree) {
       setIsHandsFree(false);
       stopAudioCapture();
+      stopSpeechRecognition();
       onVoiceStateChange('idle');
     } else {
       setIsHandsFree(true);
       startAudioCapture();
+      startSpeechRecognition();
     }
   };
 
