@@ -14,13 +14,13 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Muraho Voice | Conversational Kinyarwanda AI",
+  title: "Muraho Live | Conversational Kinyarwanda AI",
   description: "Real-time bilingual voice interface for Kigali moto taxis, Kimironko market bargaining, and MTN MoMo payments.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Muraho Voice",
+    title: "Muraho Live",
   },
 };
 

@@ -1,6 +1,6 @@
 {
-  "name": "Muraho Voice",
-  "short_name": "MurahoVoice",
+  "name": "Muraho Live",
+  "short_name": "MurahoLive",
   "description": "Real-time AI voice translator for English and Kinyarwanda",
   "start_url": "/",
   "id": "/",

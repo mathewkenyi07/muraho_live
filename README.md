@@ -1,4 +1,4 @@
-# 🇷🇼 Muraho Voice (`murahovoice.tech`)
+# 🇷🇼 Muraho Live (`murahovoice.tech`)
 ### Real-Time AI Voice Translator & Cultural Copilot for Kigali, Rwanda
 **Hacktoberfest Hack Day Kigali 2026 — Build54 × ALX × GDG Rwanda × MLH**
 
@@ -8,15 +8,15 @@
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready%20(%230F172A)-00A3E0?logo=pwa)](https://murahovoice.tech/manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Muraho Voice** is a real-time, low-latency multimodal voice copilot designed specifically for navigating Kigali, Rwanda. Whether you are haggling a moto fare with a motari in Giporoso, bargaining for passion fruit and avocado in Kimironko Market, or paying via MTN Mobile Money (*182#), Muraho Voice translates vernacular Kinyarwanda street speech, provides real-time fair price benchmarks, alerts you to Rwandan cultural etiquette and safety norms, and generates one-tap USSD payment payloads.
+**Muraho Live** is a real-time, low-latency multimodal voice copilot designed specifically for navigating Kigali, Rwanda. Whether you are negotiating a moto fare with a motari in Giporoso, bargaining for passion fruit and avocado in Kimironko Market, or paying via MTN Mobile Money (*182#), Muraho Live translates vernacular Kinyarwanda street speech, provides real-time fair price benchmarks, alerts you to Rwandan cultural etiquette and safety norms, and generates one-tap USSD payment payloads.
 
 ---
 
 ## 🏆 Hackathon Prize Tracks & Category Submissions
 
-Muraho Voice was built for **Hacktoberfest Hack Day Kigali 2026 (Build54 & ALX & GDG Rwanda)** and enters the following prize categories:
+Muraho Live was built for **Hacktoberfest Hack Day Kigali 2026 (Build54 & ALX & GDG Rwanda)** and enters the following prize categories:
 
-| Prize Track | Why Muraho Voice Qualifies | Implementation Details |
+| Prize Track | Why Muraho Live Qualifies | Implementation Details |
 | :--- | :--- | :--- |
 | **Best Use of Gemma 4** | Uses open-weight multimodal intelligence for rapid prototyping and lightweight real-world community reasoning. | Harnesses Google Gemma & Gemini for colloquial Kinyarwanda vernacular slang understanding (`Bite se`, `wangu`, `gutwika`), Rwandan transport heuristics, and cultural safety advisories. |
 | **Best Open-Source AI Project** | Fully open-source project (MIT licensed) adapting open-weight speech models for African low-resource languages. | Integrates Hugging Face open-weight Kinyarwanda models (`badrex/w2v-bert-2.0-kinyarwanda-asr` & `facebook/mms-tts-kin`) with an extensible local fallback harness. |
@@ -25,21 +25,21 @@ Muraho Voice was built for **Hacktoberfest Hack Day Kigali 2026 (Build54 & ALX &
 
 ## ⚡ 2-Minute Pitch Script for Hackathon Judges
 
-> *"Judges, imagine you just landed at Kigali International Airport at 11 PM. You walk outside, and 15 motaris — motorcycle taxi drivers — offer you a ride into town. They quote you 5,000 Rwandan Francs. Is that a fair price? A rip-off? How do you ask them for a helmet, make a counter-offer, or pay them when you only have your phone?*
+> *"Judges, in fast-growing African metropolises like Kigali, everyday street interactions happen in vibrant colloquial dialects and cashless USSD payment flows.*
 >
-> *Existing translation apps completely fail here. Google Translate doesn't know Kigali street slang like 'Bite se motari' or 'ntwike ikirere'. It doesn't know RURA regulated fare brackets, and it can't generate the MTN MoMo USSD string you need to settle up.*
+> *Existing translation apps completely fail on the street. Standard translators only know textbook phrasing—they don't know Kigali street slang like 'Bite se motari' or 'ntwike ikirere', they don't know RURA-regulated transit fare brackets, and they can't construct the MTN MoMo USSD payment strings needed to settle up with drivers and market vendors.*
 >
-> *Enter **Muraho Voice**. Built with Next.js 14 and powered by **Google Gemma / Gemini** for street slang reasoning, **ElevenLabs** for ultra-lifelike Kigali-accented voice output, and **Groq** for sub-150ms speech interpretation.*
+> *Enter **Muraho Live**. Built with Next.js 14 and powered by **Google Gemma / Gemini** for street slang reasoning, **ElevenLabs** for ultra-lifelike Kigali-accented voice output, and **Groq** for sub-150ms speech interpretation.*
 >
 > *Watch this: I tap the mic and say: 'Hey, I need to get from Kigali Downtown to Kigali Convention Centre. Ask the motari for a fair price.'*
 >
-> *Muraho Voice immediately responds in vernacular Kinyarwanda: 'Bite se motari! Ndashaka kugera KCC. Mpa igiciro kizima bro.' At the same time, it pops up a Cultural Alert: 'Fair Fare Benchmark: 1,000 – 1,200 RWF. Do not pay more than 1,500 RWF! Always demand an Ingofero helmet.'*
+> *Muraho Live immediately responds in vernacular Kinyarwanda: 'Bite se motari! Ndashaka kugera KCC. Mpa igiciro kizima bro.' At the same time, it pops up a Cultural Alert: 'Fair Fare Benchmark: 1,000 – 1,200 RWF. Do not pay more than 1,500 RWF! Always demand an Ingofero helmet.'*
 >
-> *When the ride ends, Muraho Voice converts the agreed fare into a ready-to-dial `*182*8*1*CODE*1200#` MTN Mobile Money USSD code — eliminating payment friction across Africa's leading cashless city.*
+> *When the ride ends, Muraho Live converts the agreed fare into a ready-to-dial `*182*8*1*CODE*1200#` MTN Mobile Money USSD code — eliminating payment friction across Africa's leading cashless city.*
 >
-> *And if the network drops in a rural valley? Muraho Voice has pre-cached offline fail-safe scenarios for moto hailing, market bargaining, and emergency contacts.*
+> *And if the network drops in a rural valley? Muraho Live has pre-cached offline fail-safe scenarios for moto hailing, market bargaining, and emergency contacts.*
 >
-> *Muraho Voice isn't just a language translator — it is your hyper-local cultural copilot. Thank you."*
+> *Muraho Live isn't just a language translator — it is your hyper-local cultural copilot. Thank you."*
 
 ---
 
@@ -48,7 +48,7 @@ Muraho Voice was built for **Hacktoberfest Hack Day Kigali 2026 (Build54 & ALX &
 ```mermaid
 flowchart TD
     subgraph Client ["Client Layer (Mobile PWA / Web Audio)"]
-        UI["Muraho Voice UI (Next.js 14 / Tailwind CSS)"]
+        UI["Muraho Live UI (Next.js 14 / Tailwind CSS)"]
         MIC["AudioController (MediaStream & Analyser)"]
         ORB["VisualizerOrb (Dynamic Ambient State)"]
         HUD["CulturalHUD (Real-Time Safety & Fare Alerts)"]
@@ -121,7 +121,7 @@ flowchart TD
 
 5. **Acoustic Fail-Safe Engine (`components/FailSafeDrawer.tsx`)**
    - Equipped with pre-cached audio and text dialogues for the 3 primary situations:
-     - **Moto Haggle:** Airport to Kigali Convention Centre (KCC).
+     - **Moto Ride:** Kigali Downtown to Kigali Convention Centre (KCC).
      - **Market Bargain:** Kimironko Market passion fruit (*marakuja*) purchase.
      - **MoMo Settlement:** End-of-ride mobile payment settlement.
 
@@ -178,7 +178,7 @@ ELEVENLABS_VOICE_ID=your_voice_id_here
 # Groq (Optional LPU Accelerator)
 GROQ_API_KEY=your_groq_api_key_here
 ```
-*(Note: Muraho Voice includes built-in offline fallbacks and browser speech synthesis so the app remains interactive even without external keys!)*
+*(Note: Muraho Live includes built-in offline fallbacks and browser speech synthesis so the app remains interactive even without external keys!)*
 
 ### 4. Run the Development Server
 ```bash
@@ -220,7 +220,7 @@ curl http://localhost:3000/api/health
 
 ## 📱 Progressive Web App (PWA)
 
-Muraho Voice is fully configured as an installable mobile PWA:
+Muraho Live is fully configured as an installable mobile PWA:
 - **Theme Color:** `#0F172A` (Slate 900 Kigali Night)
 - **Display Mode:** `standalone` (Nav-free mobile experience)
 - **Manifest:** Defined in [`public/manifest.json`](public/manifest.json) with high-res maskable icons.
@@ -228,9 +228,17 @@ Muraho Voice is fully configured as an installable mobile PWA:
 
 ---
 
-## 👥 Hackathon Team & Acknowledgements
+## 👥 Hackathon Team & Collaborators
 
-- **Developer:** Mathew Isaac ([@mathewkenyi07](https://github.com/mathewkenyi07))
+- **Mathew Isaac** ([@mathewkenyi07](https://github.com/mathewkenyi07)) — Lead Developer
+- **chiengkuach Aleer** ([@chiengkauchjok](https://github.com/chiengkauchjok)) — Collaborator
+- **Daniel Ngaruka** ([@daniel7nrk](https://github.com/daniel7nrk)) — Collaborator
+- **engjuleskad-sudo** ([@engjuleskad-sudo](https://github.com/engjuleskad-sudo)) — Collaborator
+- **ladusatimonmusa** ([@ladusatimonmusa](https://github.com/ladusatimonmusa)) — Collaborator
+- **Edson Ndyanabo** ([@ndyanaboeddy512-lgtm](https://github.com/ndyanaboeddy512-lgtm)) — Collaborator
+- **Oleyo Nelson** ([@Onel45](https://github.com/Onel45)) — Collaborator
+
+### Event & Community Partners
 - **Event:** [Hacktoberfest Hack Day Kigali 2026](https://www.mlh.com/events/hacktoberfest-hack-day-kigali-x-build54-africa-foundation)
 - **Partners:** Build54 Africa Foundation, ALX Rwanda, GDG Rwanda, and Major League Hacking (MLH).
 
