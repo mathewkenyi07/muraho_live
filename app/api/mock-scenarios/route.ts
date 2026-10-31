@@ -1,83 +1,80 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export interface AcousticScenario {
-  id: string;
-  title: string;
-  description: string;
-  noiseProfile: 'heavy_traffic' | 'rain_storm' | 'crowded_market';
-  audioPromptUrl?: string;
-  transcriptRawKinyarwanda: string;
-  cleanedKinyarwanda: string;
-  englishTranslation: string;
-  kigaliVernacularCounter: string;
-  fairBenchmarkRwf: number;
-  driverOfferRwf: number;
-  suggestedCounterRwf: number;
-  acousticFallbackActive: boolean;
-  notes: string;
-}
+export async function POST(req: NextRequest) {
+  try {
+    const contentType = req.headers.get('content-type') || '';
+    let base64Audio = '';
+    let mimeType = 'audio/webm';
 
-const MOCK_SCENARIOS: Record<string, AcousticScenario> = {
-  scenario_1_nyabugogo_traffic: {
-    id: 'scenario_1_nyabugogo_traffic',
-    title: 'Nyabugogo Bus Park - Heavy Engine & Horn Noise',
-    description: 'High background decibel environment with diesel engines revving and overlapping crowd chatter.',
-    noiseProfile: 'heavy_traffic',
-    transcriptRawKinyarwanda: '...[ingoma/moteri]... kcc ... ibihumbi bibiri gusa wangu ...',
-    cleanedKinyarwanda: 'KCC ni ibihumbi bibiri (2,000 RWF) gusa wangu.',
-    englishTranslation: 'KCC is just two thousand Rwandan Francs (2,000 RWF), my friend.',
-    kigaliVernacularCounter: 'Ibihumbi bibiri birakabije kabisa! Fata 1,200 RWF tereka ingofero twigendere.',
-    fairBenchmarkRwf: 1200,
-    driverOfferRwf: 2000,
-    suggestedCounterRwf: 1200,
-    acousticFallbackActive: true,
-    notes: 'Acoustic filter isolates driver pitch; Tinker triggers street counter-bid with helmet prompt.',
-  },
-  scenario_2_kimironko_rain: {
-    id: 'scenario_2_kimironko_rain',
-    title: 'Kimironko Market - Heavy Tropical Downpour',
-    description: 'Heavy rainfall on corrugated tin roofs and road spray muffling vocal frequencies.',
-    noiseProfile: 'rain_storm',
-    transcriptRawKinyarwanda: '...[imvura]... umuhanda uranyerera ... mpa igihumbi na magana atanu ...',
-    cleanedKinyarwanda: 'Umuhanda uranyerera, mpa igihumbi na magana atanu (1,500 RWF).',
-    englishTranslation: 'The road is slippery from rain, give me one thousand five hundred (1,500 RWF).',
-    kigaliVernacularCounter: 'Sawa ndaguha 1,300 RWF ariko motari gabanya umuvuduko witondere amazi!',
-    fairBenchmarkRwf: 1000,
-    driverOfferRwf: 1500,
-    suggestedCounterRwf: 1300,
-    acousticFallbackActive: true,
-    notes: 'Paper Instruments injects road safety / slippery weather advisory to reduce speed.',
-  },
-  scenario_3_biryogo_hail: {
-    id: 'scenario_3_biryogo_hail',
-    title: 'Biryogo Nyamirambo - Quick MoMo Settlement & Departure',
-    description: 'Pedestrian car-free zone with street music and quick bargaining close.',
-    noiseProfile: 'crowded_market',
-    transcriptRawKinyarwanda: '...[umuziki]... remera ni bibiri ... ufite momo? ...',
-    cleanedKinyarwanda: 'Remera ni bibiri (2,000 RWF). Ufite MoMo se?',
-    englishTranslation: 'To Remera is 2,000 RWF. Do you have Mobile Money?',
-    kigaliVernacularCounter: 'Fata 1,800 RWF kuri MoMo ako kanya. Tereka kode yawe!',
-    fairBenchmarkRwf: 1800,
-    driverOfferRwf: 2000,
-    suggestedCounterRwf: 1800,
-    acousticFallbackActive: true,
-    notes: 'Backboard locks agreed price at 1,800 RWF and prepares MoMo merchant USSD workflow.',
-  },
-};
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      const file = formData.get('audio') as File | null;
+      if (!file) {
+        return NextResponse.json({ error: 'Audio file is required' }, { status: 400 });
+      }
+      mimeType = file.type || 'audio/webm';
+      const arrayBuffer = await file.arrayBuffer();
+      base64Audio = Buffer.from(arrayBuffer).toString('base64');
+    } else {
+      const body = await req.json();
+      base64Audio = body.audioBase64 || body.audio;
+      mimeType = body.mimeType || 'audio/webm';
+    }
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const scenarioId = searchParams.get('id');
+    if (!base64Audio) {
+      return NextResponse.json({ error: 'No audio data received' }, { status: 400 });
+    }
 
-  if (scenarioId && MOCK_SCENARIOS[scenarioId]) {
-    return NextResponse.json({
-      success: true,
-      scenario: MOCK_SCENARIOS[scenarioId],
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (!geminiKey) {
+      return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
+    }
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+
+    const payload = {
+      contents: [{
+        parts: [
+          { text: 'Transcribe the spoken words from this audio recording accurately. Return JSON format: {"transcription": "<exact spoken text>"}. If only background noise or silence is heard, return {"transcription": ""}.' },
+          { inlineData: { mimeType, data: base64Audio } }
+        ]
+      }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.1,
+      }
+    };
+
+    const res = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
     });
-  }
 
-  return NextResponse.json({
-    success: true,
-    scenarios: Object.values(MOCK_SCENARIOS),
-  });
+    if (res.ok) {
+      const data = await res.json();
+      const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (textResponse) {
+        try {
+          const parsed = JSON.parse(textResponse);
+          return NextResponse.json({
+            success: true,
+            text: (parsed.transcription || '').trim(),
+            model: 'gemini-2.5-flash-transcribe'
+          });
+        } catch {
+          return NextResponse.json({
+            success: true,
+            text: textResponse.trim(),
+            model: 'gemini-2.5-flash-transcribe'
+          });
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true, text: '' });
+  } catch (err: any) {
+    console.error('[API /transcribe] Transcription error:', err);
+    return NextResponse.json({ error: 'Transcription failed', details: err?.message || String(err) }, { status: 500 });
+  }
 }
+

@@ -1,16 +1,16 @@
 {
   "name": "Muraho Voice",
   "short_name": "MurahoVoice",
-  "description": "Real-time AI voice translator & cultural copilot for navigating Kigali, Rwanda",
+  "description": "Real-time AI voice translator for English and Kinyarwanda",
   "start_url": "/",
   "id": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0F172A",
-  "theme_color": "#0F172A",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["travel", "navigation", "utilities", "productivity"],
+  "categories": ["utilities", "productivity"],
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -31,28 +31,6 @@
       "purpose": "any"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "Hail Motari",
-      "short_name": "Motari",
-      "description": "Negotiate motorcycle taxi fare in Kinyarwanda",
-      "url": "/?scenario=moto",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Kimironko Market",
-      "short_name": "Market",
-      "description": "Bargain fruit, crafts and fabrics in vernacular Kinyarwanda",
-      "url": "/?scenario=market",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Pay with MoMo",
-      "short_name": "MoMo",
-      "description": "Generate Kigali USSD Mobile Money code",
-      "url": "/?scenario=momo",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
-    }
-  ],
+  "shortcuts": [],
   "screenshots": []
 }

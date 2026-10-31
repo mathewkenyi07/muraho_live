@@ -53,7 +53,13 @@ export const AudioController: React.FC<AudioControllerProps> = ({
     };
   }, []);
 
-  // Monitor audio volume meter
+  // Audio chunks collector for backend transcription
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const lastSpokenTimestampRef = useRef<number>(0);
+  const speechDetectedDuringRecordingRef = useRef<boolean>(false);
+  const isSendingAudioRef = useRef<boolean>(false);
+
+  // Monitor audio volume meter and detect speech + silence
   const startVolumeMeter = () => {
     if (!analyserRef.current) return;
     const analyser = analyserRef.current;
@@ -72,17 +78,87 @@ export const AudioController: React.FC<AudioControllerProps> = ({
 
       onAudioLevelChange(normalized);
 
-      // Barge-in detection: If Muraho is speaking and user starts talking loudly
-      if (voiceState === 'speaking' && normalized > 0.4) {
-        // Interrupt / barge-in!
-        interruptSpeaking();
-        onVoiceStateChange('listening');
+      const now = Date.now();
+
+      // If user is actively speaking (RMS volume threshold > 0.08)
+      if (normalized > 0.08) {
+        lastSpokenTimestampRef.current = now;
+        speechDetectedDuringRecordingRef.current = true;
+
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
+
+        // Barge-in detection: If Muraho is speaking, cancel it immediately
+        if (voiceState === 'speaking') {
+          interruptSpeaking();
+          onVoiceStateChange('listening');
+        }
+      } else if (
+        speechDetectedDuringRecordingRef.current &&
+        lastSpokenTimestampRef.current > 0 &&
+        now - lastSpokenTimestampRef.current > 1100 &&
+        !isSendingAudioRef.current
+      ) {
+        // User spoke and then paused for > 1.1s: auto-send audio!
+        speechDetectedDuringRecordingRef.current = false;
+        finishAndTranscribeAudio();
       }
 
       animFrameRef.current = requestAnimationFrame(updateMeter);
     };
 
     updateMeter();
+  };
+
+  const finishAndTranscribeAudio = async () => {
+    if (isSendingAudioRef.current) return;
+    isSendingAudioRef.current = true;
+    onVoiceStateChange('thinking');
+
+    try {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+
+      // Small delay to ensure last dataavailable event fires
+      await new Promise((r) => setTimeout(r, 120));
+
+      const chunks = [...recordedChunksRef.current];
+      recordedChunksRef.current = [];
+
+      if (chunks.length > 0) {
+        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.webm');
+
+        const res = await fetch('/api/transcribe', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const transcription = (data.text || '').trim();
+          if (transcription && onUserSpeechDetected) {
+            onUserSpeechDetected(transcription);
+          } else {
+            onVoiceStateChange('idle');
+          }
+        } else {
+          onVoiceStateChange('idle');
+        }
+      } else {
+        onVoiceStateChange('idle');
+      }
+    } catch (err) {
+      console.warn('Transcription error:', err);
+      onVoiceStateChange('idle');
+    } finally {
+      isSendingAudioRef.current = false;
+      stopAudioCapture();
+    }
   };
 
   const interruptSpeaking = () => {
@@ -93,6 +169,11 @@ export const AudioController: React.FC<AudioControllerProps> = ({
 
   const startAudioCapture = async () => {
     setAudioError(null);
+    recordedChunksRef.current = [];
+    speechDetectedDuringRecordingRef.current = false;
+    lastSpokenTimestampRef.current = 0;
+    isSendingAudioRef.current = false;
+
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Microphone audio API not supported on this browser');
@@ -119,7 +200,7 @@ export const AudioController: React.FC<AudioControllerProps> = ({
       source.connect(analyser);
       analyserRef.current = analyser;
 
-      // MediaRecorder for chunk streaming
+      // MediaRecorder for chunk capture
       let recorder: MediaRecorder;
       try {
         recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
@@ -128,12 +209,15 @@ export const AudioController: React.FC<AudioControllerProps> = ({
       }
 
       recorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0 && onAudioStreamData) {
-          onAudioStreamData(event.data);
+        if (event.data && event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+          if (onAudioStreamData) {
+            onAudioStreamData(event.data);
+          }
         }
       };
 
-      recorder.start(500); // 500ms audio slices
+      recorder.start(250); // 250ms chunks
       mediaRecorderRef.current = recorder;
 
       setIsRecording(true);
@@ -144,8 +228,8 @@ export const AudioController: React.FC<AudioControllerProps> = ({
       const errorMsg = err instanceof Error ? err.message : 'Microphone access denied';
       console.warn('Microphone permission or hardware error:', errorMsg);
       setAudioError(errorMsg);
-      // Fallback: simulate audio level pulse for UI preview
-      simulateAudioPulse();
+      setIsRecording(false);
+      onVoiceStateChange('idle');
     }
   };
 
@@ -199,59 +283,65 @@ export const AudioController: React.FC<AudioControllerProps> = ({
     const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRec) {
       console.warn('SpeechRecognition API not available in this browser');
+      setAudioError('Browser speech recognition not supported. Please type in the input bar.');
       return;
     }
 
     try {
       const recognition = new SpeechRec();
-      recognition.continuous = true;
+      recognition.continuous = false; // Capture discrete sentence utterance
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
+      recognition.onstart = () => {
+        setIsRecording(true);
+        onVoiceStateChange('listening');
+      };
+
       recognition.onresult = (event: any) => {
-        let interimTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            speechBufferRef.current += ' ' + transcript;
-          } else {
-            interimTranscript += transcript;
-          }
+        let transcript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
         }
 
-        // Active speech detected
-        onVoiceStateChange('listening');
+        const trimmed = transcript.trim();
+        if (trimmed) {
+          speechBufferRef.current = trimmed;
+        }
 
         // Reset silence timer on every new speech chunk
         if (speechSilenceTimeoutRef.current) {
           clearTimeout(speechSilenceTimeoutRef.current);
         }
 
-        // When user pauses for 1.2s, automatically trigger reply!
+        // When user pauses for 1000ms, automatically trigger reply!
         speechSilenceTimeoutRef.current = setTimeout(() => {
-          if (interimTranscript && !speechBufferRef.current.includes(interimTranscript)) {
-            speechBufferRef.current += ' ' + interimTranscript;
-          }
-          dispatchCapturedSpeech();
-        }, 1200);
+          stopSpeechRecognition();
+          stopAudioCapture();
+        }, 1000);
       };
 
       recognition.onerror = (e: any) => {
         console.warn('Speech recognition event:', e.error);
-        if (e.error === 'no-speech') {
-          // keep listening if hands-free
+        if (e.error === 'not-allowed') {
+          setAudioError('Microphone permission blocked. Please allow mic access in your browser address bar.');
+          setIsRecording(false);
+          onVoiceStateChange('idle');
+        } else if (e.error === 'network') {
+          // Brave browser blocks Google's speech recognition cloud service by default
+          setAudioError('Brave Shields blocked browser speech-to-text. Enable Google services for speech in Brave, or use the input box to type.');
+          setIsRecording(false);
+          onVoiceStateChange('idle');
+        } else if (e.error === 'no-speech') {
+          // User paused without saying words
+          setIsRecording(false);
+          onVoiceStateChange('idle');
         }
       };
 
       recognition.onend = () => {
-        // In continuous hands-free mode, automatically restart listening
-        if (isHandsFree && recognitionRef.current) {
-          try {
-            recognitionRef.current.start();
-          } catch {
-            // ignore
-          }
-        }
+        setIsRecording(false);
+        dispatchCapturedSpeech();
       };
 
       recognitionRef.current = recognition;
@@ -285,24 +375,6 @@ export const AudioController: React.FC<AudioControllerProps> = ({
     }
   };
 
-  // Safe fallback synthesizer when no mic is detected
-  const simulateAudioPulse = () => {
-    setIsRecording(true);
-    onVoiceStateChange('listening');
-    let step = 0;
-    const interval = setInterval(() => {
-      step++;
-      const simulatedLvl = 0.2 + Math.abs(Math.sin(step * 0.3)) * 0.5;
-      onAudioLevelChange(simulatedLvl);
-      if (step > 25) {
-        clearInterval(interval);
-        setIsRecording(false);
-        onAudioLevelChange(0.04);
-        onVoiceStateChange('idle');
-      }
-    }, 100);
-  };
-
   // Push to Talk handler (MouseDown / TouchStart)
   const handlePushToTalkStart = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
@@ -310,14 +382,16 @@ export const AudioController: React.FC<AudioControllerProps> = ({
       interruptSpeaking();
     }
     startAudioCapture();
-    startSpeechRecognition();
   };
 
   const handlePushToTalkEnd = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     if (!isHandsFree && isRecording) {
-      stopAudioCapture();
-      stopSpeechRecognition();
+      if (speechDetectedDuringRecordingRef.current || recordedChunksRef.current.length > 0) {
+        finishAndTranscribeAudio();
+      } else {
+        stopAudioCapture();
+      }
     }
   };
 
@@ -325,12 +399,10 @@ export const AudioController: React.FC<AudioControllerProps> = ({
     if (isHandsFree) {
       setIsHandsFree(false);
       stopAudioCapture();
-      stopSpeechRecognition();
       onVoiceStateChange('idle');
     } else {
       setIsHandsFree(true);
       startAudioCapture();
-      startSpeechRecognition();
     }
   };
 
@@ -356,15 +428,17 @@ export const AudioController: React.FC<AudioControllerProps> = ({
         <button
           onClick={() => {
             if (isRecording) {
-              stopAudioCapture();
-              stopSpeechRecognition();
-              onVoiceStateChange('idle');
+              if (speechDetectedDuringRecordingRef.current || recordedChunksRef.current.length > 0) {
+                finishAndTranscribeAudio();
+              } else {
+                stopAudioCapture();
+                onVoiceStateChange('idle');
+              }
             } else {
               if (voiceState === 'speaking') {
                 interruptSpeaking();
               }
               startAudioCapture();
-              startSpeechRecognition();
             }
           }}
           className={`flex-1 py-4 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2.5 shadow-xl transition-all select-none active:scale-[0.96] ${
@@ -395,8 +469,8 @@ export const AudioController: React.FC<AudioControllerProps> = ({
 
       {/* Audio permission / notice message */}
       {audioError && (
-        <div className="text-[11px] text-amber-400 bg-amber-950/30 border border-amber-800/50 px-3 py-1.5 rounded-xl text-center">
-          Note: Microphone simulated ({audioError}). You can still use 1-tap fail-safe scenarios!
+        <div className="text-[11px] text-zinc-400 bg-zinc-900/80 border border-white/10 px-3.5 py-1.5 rounded-xl text-center backdrop-blur-md">
+          {audioError}
         </div>
       )}
     </div>

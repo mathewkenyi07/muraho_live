@@ -80,6 +80,53 @@ export class ElevenLabsService {
       }
     }
 
+    // 2. High-Fidelity Neural Voice Synthesis via Gemini 2.5 Flash Preview TTS
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (geminiKey) {
+      try {
+        const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${geminiKey}`;
+        const payload = {
+          contents: [{
+            parts: [{ text: `Read this Kinyarwanda phrase aloud clearly and naturally: "${req.text}"` }]
+          }],
+          generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: {
+                  voiceName: "Aoede"
+                }
+              }
+            }
+          }
+        };
+
+        const ttsRes = await fetch(ttsUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (ttsRes.ok) {
+          const ttsData = await ttsRes.json();
+          const audioPart = ttsData.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+          if (audioPart?.data) {
+            const wavBuffer = this.pcmToWavBuffer(audioPart.data, 24000);
+            return {
+              audioBuffer: wavBuffer,
+              audioBase64: wavBuffer.toString('base64'),
+              contentType: 'audio/wav',
+              latencyMs: Date.now() - startTime,
+              modelUsed: 'gemini-2.5-flash-tts',
+              isMockFallback: false,
+            };
+          }
+        }
+      } catch (e) {
+        console.warn('[ElevenLabsService] Gemini TTS fallback failed:', e);
+      }
+    }
+
     // Elegant fallback: Generate a lightweight 1-second silent/chime WAV buffer so client audio players don't crash
     const mockWavBuffer = this.generateFallbackPcmWav();
     return {
@@ -90,6 +137,35 @@ export class ElevenLabsService {
       modelUsed: 'mock-offline-flash-tts',
       isMockFallback: true,
     };
+  }
+
+  /**
+   * Converts raw 16-bit Mono Linear PCM into standard playable WAV format
+   */
+  private pcmToWavBuffer(pcmBase64: string, sampleRate: number = 24000): Buffer {
+    const pcmBuffer = Buffer.from(pcmBase64, 'base64');
+    const numChannels = 1;
+    const bitsPerSample = 16;
+    const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
+    const blockAlign = (numChannels * bitsPerSample) / 8;
+    const dataSize = pcmBuffer.length;
+    const header = Buffer.alloc(44);
+
+    header.write('RIFF', 0);
+    header.writeUInt32LE(36 + dataSize, 4);
+    header.write('WAVE', 8);
+    header.write('fmt ', 12);
+    header.writeUInt32LE(16, 16);
+    header.writeUInt16LE(1, 20); // PCM
+    header.writeUInt16LE(numChannels, 22);
+    header.writeUInt32LE(sampleRate, 24);
+    header.writeUInt32LE(byteRate, 28);
+    header.writeUInt16LE(blockAlign, 32);
+    header.writeUInt16LE(bitsPerSample, 34);
+    header.write('data', 36);
+    header.writeUInt32LE(dataSize, 40);
+
+    return Buffer.concat([header, pcmBuffer]);
   }
 
   /**

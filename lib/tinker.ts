@@ -80,7 +80,45 @@ export class TinkerClient {
       }
     }
 
-    // Real-time live translation for ANY arbitrary English or Kinyarwanda input
+    // 1. High-Precision Multilingual Translation via Gemini 2.5 Flash
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (geminiKey) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+        const prompt = req.sourceLang === 'en'
+          ? `Translate the following English phrase into authentic, natural Kinyarwanda as spoken in everyday Kigali street dialogue: "${req.text.trim()}". Return only the translated Kinyarwanda sentence with no extra markdown or quotes.`
+          : `Translate the following Kinyarwanda phrase into natural English: "${req.text.trim()}". Return only the translated English sentence with no extra markdown or quotes.`;
+
+        const geminiRes = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.2, maxOutputTokens: 2048 }
+          })
+        });
+
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          let translatedText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+          if (translatedText) {
+            translatedText = translatedText.replace(/^[\*\"]+|[\*\"]+$/g, '').trim();
+            const vernacular = this.embellishWithVernacular(translatedText, req.text);
+            return {
+              translatedText,
+              vernacularText: vernacular,
+              detectedSlang: this.extractSlang(vernacular),
+              modelUsed: 'gemini-2.5-flash-translator',
+              latencyMs: Date.now() - startTime,
+            };
+          }
+        }
+      } catch (err) {
+        console.warn('[TinkerClient] Gemini translation call failed, testing fallback:', err);
+      }
+    }
+
+    // 2. Real-time live translation fallback via Google GTX
     try {
       const sl = req.sourceLang;
       const tl = req.targetLang;
