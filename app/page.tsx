@@ -188,7 +188,7 @@ export default function MurahoVoiceApp() {
               </p>
             ) : (
               <p className="text-xs font-light text-zinc-500 tracking-wider font-mono">
-                {voiceState === 'listening' ? 'Listening...' : 'Tap or hold mic to speak'}
+                {voiceState === 'listening' ? 'Listening... Speak naturally' : 'Tap mic below to speak'}
               </p>
             )}
           </div>

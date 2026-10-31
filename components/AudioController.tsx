@@ -352,21 +352,30 @@ export const AudioController: React.FC<AudioControllerProps> = ({
           {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
         </button>
 
-        {/* Big Push-To-Talk / Hold-to-Talk Button */}
+        {/* Single Tap Toggle Microphone Button */}
         <button
-          onMouseDown={handlePushToTalkStart}
-          onMouseUp={handlePushToTalkEnd}
-          onTouchStart={handlePushToTalkStart}
-          onTouchEnd={handlePushToTalkEnd}
-          className={`flex-1 py-4 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2.5 shadow-xl transition-all select-none touch-none active:scale-[0.96] ${
+          onClick={() => {
+            if (isRecording) {
+              stopAudioCapture();
+              stopSpeechRecognition();
+              onVoiceStateChange('idle');
+            } else {
+              if (voiceState === 'speaking') {
+                interruptSpeaking();
+              }
+              startAudioCapture();
+              startSpeechRecognition();
+            }
+          }}
+          className={`flex-1 py-4 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2.5 shadow-xl transition-all select-none active:scale-[0.96] ${
             isRecording
-              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-purple-600/30 ring-2 ring-purple-400 ring-offset-2 ring-offset-zinc-950 animate-pulse'
+              ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-blue-600/30 ring-2 ring-cyan-400 ring-offset-2 ring-offset-zinc-950 animate-pulse'
               : 'bg-zinc-800 hover:bg-zinc-750 text-zinc-100 border border-zinc-700 hover:border-zinc-500'
           }`}
-          aria-label="Hold to talk"
+          aria-label={isRecording ? 'Stop listening' : 'Start speaking'}
         >
-          <Mic className={`w-5 h-5 ${isRecording ? 'text-white' : 'text-purple-400'}`} />
-          <span>{isRecording ? 'Listening...' : 'Tap to Speak'}</span>
+          <Mic className={`w-5 h-5 ${isRecording ? 'text-white animate-bounce' : 'text-cyan-400'}`} />
+          <span>{isRecording ? 'Listening (Pause to Translate)...' : 'Tap to Speak'}</span>
         </button>
 
         {/* Continuous Hands-Free Streaming Switch */}
